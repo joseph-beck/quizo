@@ -1,4 +1,4 @@
-mod handlers;
+mod services;
 
 use actix_web::{App, HttpServer};
 
@@ -6,7 +6,7 @@ use actix_web::{App, HttpServer};
 async fn main() -> std::io::Result<()> {
     HttpServer::new(|| {
         App::new()
-            .service(handlers::get_health)
+            .service(services::get_health)
     })
     .bind(("127.0.0.1", 8080))?
     .run()
