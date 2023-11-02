@@ -1,5 +1,5 @@
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 use crate::db::Database;
+use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
 
 pub struct AppState {
     app_name: String,
@@ -27,4 +27,3 @@ pub async fn get_health(data: web::Data<AppState>) -> impl Responder {
         Err(_) => HttpResponse::BadRequest().body("Failed Health Check"),
     }
 }
-

@@ -1,9 +1,9 @@
-mod services;
 mod db;
+mod services;
 
-use std::env;
-use actix_web::{App, HttpServer, middleware, web};
 use crate::services::AppState;
+use actix_web::{middleware, web, App, HttpServer};
+use std::env;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
