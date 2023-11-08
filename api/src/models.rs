@@ -18,13 +18,13 @@ pub struct Answer {
 pub struct Question {
     pub question: String,
     pub body: String,
-    pub answers: Vec<Answer>
+    pub answers: Vec<Answer>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone, Queryable, Selectable, Insertable, AsChangeset)]
 pub struct Quiz {
     pub id: i32,
-    pub questions: Vec<Question>
+    pub questions: Vec<Question>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
