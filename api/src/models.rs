@@ -1,4 +1,4 @@
-use diesel::{AsChangeset, Insertable, Queryable, Selectable};
+use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -21,15 +21,25 @@ pub struct Question {
     pub answers: Vec<Answer>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Queryable, Selectable, Insertable, AsChangeset)]
 pub struct Quiz {
-    pub id: i32,
+    pub uuid: String,
+    pub name: String,
+    pub description: String,
     pub questions: Vec<Question>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
 pub struct Lobby {
-    pub id: i8,
+    pub uuid: String,
+    pub code: i8,
     pub quiz: Quiz,
     pub players: Vec<Player>,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Queryable, Selectable, Insertable, AsChangeset, )]
+#[diesel(table_name = super::schema::users)]
+pub struct User {
+    pub uuid: String,
+    pub username: String,
+    pub password: String,
+    pub email: String,
 }

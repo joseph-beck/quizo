@@ -1,5 +1,8 @@
 diesel::table! {
-    quiz (id) {
-        id -> Int32,
+    users (uuid) {
+        uuid -> VarChar,
+        username -> VarChar,
+        password -> VarChar,
+        email -> VarChar,
     }
 }

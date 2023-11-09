@@ -1,35 +1,38 @@
+use crate::models::User;
+use crate::schema::users::dsl::*;
 use diesel::connection::SimpleConnection;
 use diesel::r2d2::{ConnectionManager, Pool};
-use diesel::SqliteConnection;
+use diesel::{OptionalExtension, RunQueryDsl, SqliteConnection};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
+use std::ptr::null;
 use std::{env, fmt};
 
-pub struct HealthError {
+pub struct DatabaseError {
     description: String,
 }
 
-impl HealthError {
+impl DatabaseError {
     pub fn new(description: &str) -> Self {
-        HealthError {
+        DatabaseError {
             description: description.to_string(),
         }
     }
 }
 
-impl Display for HealthError {
+impl Display for DatabaseError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, "Health Error: {}", self.description)
     }
 }
 
-impl Debug for HealthError {
+impl Debug for DatabaseError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, "Health Error: {}", self.description)
     }
 }
 
-impl Error for HealthError {}
+impl Error for DatabaseError {}
 
 #[derive(Clone)]
 pub struct Database {
@@ -46,16 +49,28 @@ impl Database {
         Database { pool }
     }
 
-    pub fn health_check(&self) -> Result<(), HealthError> {
+    pub fn run_migrations(&self)  {
+
+    }
+
+    pub fn health_check(&self) -> Result<(), DatabaseError> {
         let conn_result = self.pool.get();
         match conn_result {
             Ok(mut conn) => conn
                 .batch_execute("SELECT 1")
                 .map(|_| ())
-                .map_err(|_e| HealthError::new("Batch execution error")),
-            Err(r2d2_error) => Err(HealthError::new(
+                .map_err(|_e| DatabaseError::new("Batch execution error")),
+            Err(r2d2_error) => Err(DatabaseError::new(
                 format!("r2d2 Error: {}", r2d2_error.to_string()).as_str(),
             )),
         }
+    }
+
+    pub fn user_exists(&self, user_uuid: &String) -> bool {
+        false
+    }
+
+    pub fn user_get(&self, user_uuid: &String)  {
+
     }
 }
