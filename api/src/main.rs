@@ -36,6 +36,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::Logger::default())
             .service(services::get_health)
             .service(services::post_health)
+            .service(services::list_user)
             .service(services::get_user)
     })
     .bind(("127.0.0.1", 8080))?

@@ -35,7 +35,7 @@ pub struct Lobby {
     pub players: Vec<Player>,
 }
 
-#[derive(Debug, Serialize, Deserialize, Clone, Queryable, Selectable, Insertable, AsChangeset, )]
+#[derive(Debug, Serialize, Deserialize, Clone, Queryable, Selectable, Insertable, AsChangeset)]
 #[diesel(table_name = super::schema::users)]
 pub struct User {
     pub uuid: String,
