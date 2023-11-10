@@ -38,6 +38,7 @@ async fn main() -> std::io::Result<()> {
             .service(services::post_health)
             .service(services::list_user)
             .service(services::get_user)
+            .service(services::post_user)
     })
     .bind(("127.0.0.1", 8080))?
     .run()

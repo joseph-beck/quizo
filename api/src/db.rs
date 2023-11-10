@@ -1,8 +1,13 @@
-use crate::models::User;
+use crate::models::{Model, User};
 use crate::schema::users::dsl::*;
 use diesel::connection::SimpleConnection;
+use diesel::query_builder::QueryFragment;
 use diesel::r2d2::{ConnectionManager, Pool};
-use diesel::{OptionalExtension, QueryDsl, RunQueryDsl, SelectableHelper, SqliteConnection};
+use diesel::sqlite::Sqlite;
+use diesel::{
+    Insertable, OptionalExtension, QueryDsl, QueryableByName, RunQueryDsl, SelectableHelper,
+    SqliteConnection, Table,
+};
 use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::ptr::null;
@@ -107,6 +112,26 @@ impl Database {
                 .find(user_uuid)
                 .first::<User>(&mut conn)
                 .expect("Error finding user")),
+            Err(r2d2_error) => Err(DatabaseError::new(
+                format!("r2d2 Error: {}", r2d2_error.to_string()).as_str(),
+            )),
+        }
+    }
+
+    pub fn user_add(&self, user_model: User) -> Result<(), DatabaseError> {
+        let conn_result = self.pool.get();
+        match conn_result {
+            Ok(mut conn) => {
+                match diesel::insert_into(users)
+                    .values(user_model)
+                    .execute(&mut conn)
+                {
+                    Ok(_) => Ok(()),
+                    Err(error) => Err(DatabaseError::new(
+                        format!("Error: {}", error.to_string()).as_str(),
+                    )),
+                }
+            }
             Err(r2d2_error) => Err(DatabaseError::new(
                 format!("r2d2 Error: {}", r2d2_error.to_string()).as_str(),
             )),

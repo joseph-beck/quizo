@@ -1,8 +1,11 @@
 use crate::models::User;
 use crate::AppState;
-use actix_web::{get, post, web, App, HttpResponse, HttpServer, Responder};
-use serde::Deserialize;
+use actix_web::{error, get, post, web, HttpResponse, Responder};
+use futures::StreamExt;
+use serde::{Deserialize, Serialize};
 use std::fmt::format;
+
+const MAX_SIZE: usize = 262_144;
 
 #[derive(Deserialize)]
 struct HealthInfo {
@@ -68,5 +71,27 @@ pub async fn get_user(data: web::Data<AppState>, info: web::Path<UserInfo>) -> i
         Ok(user) => HttpResponse::Ok().json(user),
         Err(_) => HttpResponse::BadRequest()
             .body(format!("failure in {} to get user: {}", app_name, uuid)),
+    }
+}
+
+#[post("/api/v1/user")]
+pub async fn post_user(data: web::Data<AppState>, mut payload: web::Payload) -> impl Responder {
+    let mut body = web::BytesMut::new();
+    while let Some(chunk) = payload.next().await {
+        let chunk = chunk?;
+        // limit max size of in-memory payload
+        if (body.len() + chunk.len()) > MAX_SIZE {
+            return Err(error::ErrorBadRequest("overflow"));
+        }
+        body.extend_from_slice(&chunk);
+    }
+
+    // body is loaded, now we can deserialize serde-json
+    let user = serde_json::from_slice::<User>(&body)?;
+    let db = &data.database;
+
+    match db.user_add(user) {
+        Ok(_) => Ok(HttpResponse::Ok()),
+        Err(_) => Ok(HttpResponse::BadRequest()),
     }
 }

@@ -1,6 +1,8 @@
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 
+pub trait Model {}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Player {
     pub name: String,
