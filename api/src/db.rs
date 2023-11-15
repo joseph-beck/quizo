@@ -137,18 +137,60 @@ impl Database {
             )),
         }
     }
+
+    pub fn user_update(&self, user_model: User) -> Result<(), DatabaseError> {
+        let conn_result = self.pool.get();
+        match conn_result {
+            Ok(mut conn) => {
+                match diesel::update(users.find(&user_model.uuid))
+                    .set(&user_model)
+                    .execute(&mut conn)
+                {
+                    Ok(_) => Ok(()),
+                    Err(error) => Err(DatabaseError::new(
+                        format!("Error: {}", error.to_string()).as_str(),
+                    )),
+                }
+            }
+            Err(r2d2_error) => Err(DatabaseError::new(
+                format!("r2d2 Error: {}", r2d2_error.to_string()).as_str(),
+            )),
+        }
+    }
+
+    pub fn user_delete(&self, user_uuid: &String) -> Result<(), DatabaseError> {
+        let conn_result = self.pool.get();
+        match conn_result {
+            Ok(mut conn) => match diesel::delete(users.find(user_uuid)).execute(&mut conn) {
+                Ok(_) => Ok(()),
+                Err(error) => Err(DatabaseError::new(
+                    format!("Error: {}", error.to_string()).as_str(),
+                )),
+            },
+            Err(r2d2_error) => Err(DatabaseError::new(
+                format!("r2d2 Error: {}", r2d2_error.to_string()).as_str(),
+            )),
+        }
+    }
 }
 
 #[cfg(test)]
 mod test {
     use super::Database;
+    use crate::models::User;
 
     #[test]
     fn test_conn() {
         dotenv::dotenv().ok();
 
         let db = Database::new();
-        let _conn = db.pool.get().unwrap();
+        let conn_result = db.pool.get();
+        match conn_result {
+            Ok(_) => assert!(true),
+            Err(error) => assert!(false, "Database Connection Error: {:?}", error),
+        }
+
+        drop(db);
     }
 
     #[test]
@@ -158,9 +200,11 @@ mod test {
         let db = Database::new();
         let health_result = db.health_check();
         match health_result {
-            Ok(()) => assert!(true),
+            Ok(_) => assert!(true),
             Err(error) => assert!(false, "Database Health Check Error: {:?}", error),
         }
+
+        drop(db);
     }
 
     #[test]
@@ -174,6 +218,8 @@ mod test {
             Ok(exists) => assert!(exists == false),
             Err(error) => assert!(false, "Database User List Error: {:?}", error),
         }
+
+        drop(db);
     }
 
     #[test]
@@ -186,5 +232,107 @@ mod test {
             Ok(users) => assert!(users.len() > 0),
             Err(error) => assert!(false, "Database User List Error: {:?}", error),
         }
+
+        drop(db);
+    }
+
+    #[test]
+    fn test_user_get() {
+        dotenv::dotenv().ok();
+
+        let db = Database::new();
+        let user = User {
+            uuid: "123".to_string(),
+            username: "Dave".to_string(),
+            password: "1ajwd102390boimada!!4as".to_string(),
+            email: "dave@email.com".to_string(),
+        };
+        db.user_add(user.clone()).unwrap();
+        let get_result = db.user_get(&user.uuid);
+        match get_result {
+            Ok(_) => {
+                assert!(db.user_exists(&user.uuid).unwrap());
+                db.user_delete(&user.uuid).unwrap();
+                assert!(!db.user_exists(&user.uuid).unwrap())
+            }
+            Err(error) => assert!(false, "Database User Get Error: {:?}", error),
+        }
+
+        drop(db);
+    }
+
+    #[test]
+    fn test_user_add() {
+        dotenv::dotenv().ok();
+
+        let db = Database::new();
+        let user = User {
+            uuid: "456".to_string(),
+            username: "Bob".to_string(),
+            password: "!4s789sdfgj232?!7761asd".to_string(),
+            email: "bobby@email.com".to_string(),
+        };
+        let add_result = db.user_add(user.clone());
+        match add_result {
+            Ok(_) => {
+                assert!(db.user_exists(&user.uuid).unwrap());
+                db.user_delete(&user.uuid).unwrap();
+                assert!(!db.user_exists(&user.uuid).unwrap())
+            }
+            Err(error) => assert!(false, "Database User Add Error: {:?}", error),
+        }
+
+        drop(db);
+    }
+
+    #[test]
+    fn test_user_update() {
+        dotenv::dotenv().ok();
+
+        let db = Database::new();
+        let mut user = User {
+            uuid: "789".to_string(),
+            username: "Derek".to_string(),
+            password: "6782%&123asdcvb!!jzxcqtry56".to_string(),
+            email: "derek@email.com".to_string(),
+        };
+        db.user_add(user.clone()).unwrap();
+        assert!(db.user_exists(&user.uuid).unwrap());
+
+        user.username = "Derek123".to_string();
+        let update_result = db.user_update(user.clone());
+        match update_result {
+            Ok(_) => {
+                assert!(db.user_get(&user.uuid).unwrap().username.eq(&user.username));
+                db.user_delete(&user.uuid).unwrap();
+                assert!(!db.user_exists(&user.uuid).unwrap());
+            }
+            Err(error) => assert!(false, "Database User Update Error: {:?}", error),
+        }
+
+        drop(db);
+    }
+
+    #[test]
+    fn test_user_delete() {
+        dotenv::dotenv().ok();
+
+        let db = Database::new();
+        let user = User {
+            uuid: "012".to_string(),
+            username: "Derek".to_string(),
+            password: "6782%&123asdcvb!!jzxcqtry56".to_string(),
+            email: "derek@email.com".to_string(),
+        };
+        db.user_add(user.clone()).unwrap();
+        assert!(db.user_exists(&user.uuid).unwrap());
+
+        let delete_result = db.user_delete(&user.uuid);
+        match delete_result {
+            Ok(_) => assert!(!db.user_exists(&user.uuid).unwrap()),
+            Err(error) => assert!(false, "Database User Get Error: {:?}", error),
+        }
+
+        drop(db);
     }
 }
