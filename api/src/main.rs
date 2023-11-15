@@ -2,6 +2,7 @@ mod db;
 mod models;
 mod schema;
 mod services;
+mod ws;
 
 use crate::db::Database;
 use actix_web::{middleware, web, App, HttpServer};

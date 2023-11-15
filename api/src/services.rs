@@ -225,12 +225,15 @@ mod tests {
                 .service(post_health),
         )
         .await;
-        let req = test::TestRequest::post().uri("/api/v1/health/hello").to_request();
+        let req = test::TestRequest::post()
+            .uri("/api/v1/health/hello")
+            .to_request();
         let resp = test::call_service(&app, req).await;
         assert!(
             resp.status().is_success(),
             "status code {:?}, {:?}",
-            resp.status(), resp.response()
+            resp.status(),
+            resp.response()
         );
     }
 }
