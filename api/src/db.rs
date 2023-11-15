@@ -138,3 +138,53 @@ impl Database {
         }
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::Database;
+
+    #[test]
+    fn test_conn() {
+        dotenv::dotenv().ok();
+
+        let db = Database::new();
+        let _conn = db.pool.get().unwrap();
+    }
+
+    #[test]
+    fn test_health_check() {
+        dotenv::dotenv().ok();
+
+        let db = Database::new();
+        let health_result = db.health_check();
+        match health_result {
+            Ok(()) => assert!(true),
+            Err(error) => assert!(false, "Database Health Check Error: {:?}", error),
+        }
+    }
+
+    #[test]
+    fn test_user_exist() {
+        dotenv::dotenv().ok();
+
+        let db = Database::new();
+        let user_uuid = "0";
+        let user_result = db.user_exists(&user_uuid.to_string());
+        match user_result {
+            Ok(exists) => assert!(exists == false),
+            Err(error) => assert!(false, "Database User List Error: {:?}", error),
+        }
+    }
+
+    #[test]
+    fn test_user_list() {
+        dotenv::dotenv().ok();
+
+        let db = Database::new();
+        let user_result = db.user_list(0);
+        match user_result {
+            Ok(users) => assert!(users.len() > 0),
+            Err(error) => assert!(false, "Database User List Error: {:?}", error),
+        }
+    }
+}
