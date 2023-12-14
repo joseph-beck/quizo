@@ -9,6 +9,9 @@ build:
 test:
 	$(CARGO) test -- --test-threads=1
 
+clean:
+	$(CARGO) clean
+
 fmt:
 	$(CARGO) fmt
 

@@ -12,14 +12,14 @@ pub struct Player {
     pub points: i32,
 }
 
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone)]
 pub struct Answer {
     pub option: i8,
     pub text: String,
     pub correct: bool,
 }
 
-#[derive(Debug, Eq, PartialEq, Hash)]
+#[derive(Debug, Eq, PartialEq, Hash, Clone)]
 pub struct Question {
     pub question: String,
     pub body: String,
